@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  mobile-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Create .env (CI placeholder)
+        run: |
+          cat > .env <<EOF
+          SUPABASE_URL=http://127.0.0.1:54321
+          SUPABASE_ANON_KEY=ci-placeholder
+          EOF
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
