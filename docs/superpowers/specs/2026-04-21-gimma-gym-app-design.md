@@ -159,7 +159,7 @@ columns on syncable rows.
 | source_ref | text | yuhonas id if seed |
 | name | text | |
 | description | text | |
-| photo_url | text | Supabase Storage URL |
+| photo_url | text | image URL — for seed rows, the bundled yuhonas illustration; for user rows, a user-uploaded image in Supabase Storage (any image the user chooses — illustration, photo, diagram). Uploaded via gallery picker, not camera capture. |
 | primary_muscle | enum | see muscle enum |
 | secondary_muscles | enum[] | |
 | equipment | enum('barbell','dumbbell','machine','cable','bodyweight','band','other') | |
@@ -531,10 +531,24 @@ customer support, billing.
 
 ## 10. Offline-first sync strategy
 
-### 10.1 Local DB choice
+### 10.1 Scope — what's mirrored locally vs fetched on demand
 
-**Drift** (typed SQLite for Flutter). Schema mirrors Postgres with added
-sync metadata columns.
+The local DB is a **scoped cache + write queue**, not a full mirror of the
+server. The working assumption is: you walk into the gym with your plan and
+exercise library already downloaded; once there, the session flow works
+without connectivity.
+
+| Mirrored locally (Drift) | Fetched on demand / online-only |
+|---|---|
+| Active plan + plan_days + plan_prescriptions | Historical sessions (>30 days old) |
+| Exercise library (seed + user's own, non-archived) | Knowledge packs (fetched by edge function, not client) |
+| In-progress session + session_exercises + sets | AI call logs (admin only) |
+| Pending writes (outbox) | Weekly summaries (cached after first read) |
+| Last 30 days of completed sessions (for pre-fill) | Admin dashboard (Next.js — no local cache) |
+
+On sign-in the app performs an **initial hydration**: pull active plan, all
+non-archived exercises visible to the user, recent sessions. After that,
+incremental sync keeps the local copy current.
 
 ### 10.2 Offline capabilities
 
@@ -543,9 +557,9 @@ Must work offline:
 - View active plan and today's session
 - Swap today's session to another day
 - Start / log / skip / finish a session
-- Create a new exercise with photo (photo queues for upload)
-- View exercise library + history
-- View cached weekly summary
+- Create a new exercise (with optional image — upload queues)
+- Search / view exercise library (seed + your own)
+- View last 30 days of sessions for pre-fill / history glance
 
 Requires connectivity:
 
@@ -553,6 +567,7 @@ Requires connectivity:
 - Generate new plan
 - "Review now" insights
 - Fetching updated knowledge packs
+- Viewing sessions older than the local cache window
 
 ### 10.3 Sync mechanism
 

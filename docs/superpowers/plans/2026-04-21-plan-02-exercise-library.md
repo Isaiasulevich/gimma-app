@@ -1334,6 +1334,9 @@ git commit -m "feat(sync): auto-start on auth + connectivity change"
 **Files:**
 - Create: `apps/mobile/lib/features/exercises/data/photo_service.dart`
 
+Exercise images are user-uploaded reference illustrations (or any image the
+user chooses). Gallery picker only — no camera capture.
+
 - [ ] **Step 1:** Implement the photo service.
 
 Write `apps/mobile/lib/features/exercises/data/photo_service.dart`:
@@ -1352,9 +1355,11 @@ class PhotoService {
   final SupabaseClient _supabase;
   final ImagePicker _picker = ImagePicker();
 
-  Future<String?> pickAndStage({required ImageSource source}) async {
+  /// Picks an image from the gallery, compresses it, stages it locally.
+  /// Returns the local path (null if user cancels).
+  Future<String?> pickAndStage() async {
     final xfile = await _picker.pickImage(
-      source: source,
+      source: ImageSource.gallery,
       imageQuality: 85,
       maxWidth: 1600,
     );
@@ -1379,7 +1384,7 @@ class PhotoService {
     return stagedPath;
   }
 
-  /// Uploads a staged photo to Supabase Storage. Returns the public URL.
+  /// Uploads a staged image to Supabase Storage. Returns the public URL.
   Future<String> upload({
     required String localPath,
     required String userId,
@@ -1411,12 +1416,12 @@ class PhotoService {
 
 ```xml
 <key>NSPhotoLibraryUsageDescription</key>
-<string>Gimma uses your photo library to attach exercise photos.</string>
-<key>NSCameraUsageDescription</key>
-<string>Gimma uses your camera to capture exercise photos.</string>
+<string>Gimma uses your photo library to attach exercise reference images.</string>
 ```
 
-**Android** — no extra permission needed for `image_picker` on API 33+; on older versions the plugin handles it.
+(No camera permission — we don't use the camera.)
+
+**Android** — no extra permission needed for `image_picker` gallery access on API 33+; on older versions the plugin handles it.
 
 - [ ] **Step 3:** Commit.
 
@@ -1834,7 +1839,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/exercise_repository.dart';
@@ -1872,25 +1876,7 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
 
   Future<void> _pickPhoto() async {
     final photoService = ref.read(_photoServiceProvider);
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (_) => SafeArea(
-        child: Wrap(children: [
-          ListTile(
-            leading: const Icon(Icons.camera_alt),
-            title: const Text('Camera'),
-            onTap: () => Navigator.pop(context, ImageSource.camera),
-          ),
-          ListTile(
-            leading: const Icon(Icons.photo_library),
-            title: const Text('Gallery'),
-            onTap: () => Navigator.pop(context, ImageSource.gallery),
-          ),
-        ]),
-      ),
-    );
-    if (source == null) return;
-    final path = await photoService.pickAndStage(source: source);
+    final path = await photoService.pickAndStage();
     if (path != null) {
       setState(() => _photoPath = path);
     }
@@ -1940,7 +1926,7 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: _photoPath == null
-                  ? const Center(child: Text('+ Add photo'))
+                  ? const Center(child: Text('+ Add reference image'))
                   : ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.file(File(_photoPath!), fit: BoxFit.cover, width: double.infinity),
