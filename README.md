@@ -16,4 +16,4 @@ AI-powered gym app — personal-first, publishable-later.
 
 ## Setup
 
-See [`docs/setup.md`](docs/setup.md) (added at end of Plan 1).
+See [`docs/setup.md`](docs/setup.md).
