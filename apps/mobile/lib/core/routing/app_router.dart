@@ -21,8 +21,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable:
         GoRouterRefreshStream(Supabase.instance.client.auth.onAuthStateChange),
     routes: [
-      GoRoute(path: '/', builder: (_, __) => const HomeScreen()),
-      GoRoute(path: '/sign-in', builder: (_, __) => const SignInScreen()),
+      GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
+      GoRoute(path: '/sign-in', builder: (_, _) => const SignInScreen()),
     ],
   );
 });
