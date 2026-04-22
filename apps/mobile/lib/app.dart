@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/routing/app_router.dart';
+import 'core/sync/sync_bootstrap.dart';
 import 'core/theme/app_theme.dart';
 
 class GimmaApp extends ConsumerWidget {
@@ -9,6 +10,7 @@ class GimmaApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(syncBootstrapProvider); // fire-and-forget; engine listens to auth+net
     final router = ref.watch(appRouterProvider);
     return MaterialApp.router(
       title: 'Gimma',
