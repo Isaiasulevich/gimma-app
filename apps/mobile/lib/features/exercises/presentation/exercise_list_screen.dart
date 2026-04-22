@@ -6,6 +6,7 @@ import '../../../core/db/app_database.dart';
 import '../../../core/db/database_provider.dart';
 import '../data/exercise_repository.dart';
 import 'widgets/exercise_tile.dart';
+import 'widgets/sync_status_pill.dart';
 
 final exerciseRepositoryProvider = Provider<ExerciseRepository>((ref) {
   final db = ref.watch(appDatabaseProvider);
@@ -33,6 +34,7 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
       appBar: AppBar(
         title: const Text('Exercises'),
         actions: [
+          const Padding(padding: EdgeInsets.all(8), child: SyncStatusPill()),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => context.push('/exercises/new'),
