@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../auth/presentation/auth_controller.dart';
+import '../../exercises/presentation/widgets/sync_status_pill.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -12,6 +14,7 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Gimma'),
         actions: [
+          const Padding(padding: EdgeInsets.all(8), child: SyncStatusPill()),
           IconButton(
             tooltip: 'Sign out',
             icon: const Icon(Icons.logout),
@@ -19,17 +22,26 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: const Center(
+      body: Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Welcome', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
-              SizedBox(height: 8),
-              Text(
-                'Your home screen is ready. Training features arrive in Plan 2 and beyond.',
+              const Text(
+                'Welcome',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Training features arrive in later plans.',
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                icon: const Icon(Icons.fitness_center),
+                label: const Text('Exercises'),
+                onPressed: () => context.push('/exercises'),
               ),
             ],
           ),
