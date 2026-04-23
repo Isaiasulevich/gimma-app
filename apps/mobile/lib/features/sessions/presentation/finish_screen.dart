@@ -36,7 +36,7 @@ class FinishScreen extends ConsumerWidget {
 
   Future<void> _finish(BuildContext context, WidgetRef ref) async {
     await ref.read(sessionRepoProvider).finishSession(sessionId);
-    if (context.mounted) context.go('/');
+    if (context.mounted) context.go('/history');
   }
 }
 
