@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/db/app_database.dart';
 import '../../../core/db/database_provider.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../../exercises/presentation/widgets/sync_status_pill.dart';
 import '../../plans/data/plan_repository.dart';
 import '../data/session_repository.dart';
@@ -46,8 +47,15 @@ class TodayScreen extends ConsumerWidget {
     final planAsync = ref.watch(_activePlanProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Today'),
-        actions: const [Padding(padding: EdgeInsets.all(8), child: SyncStatusPill())],
+        title: const Text('Train'),
+        actions: [
+          const Padding(padding: EdgeInsets.all(8), child: SyncStatusPill()),
+          IconButton(
+            tooltip: 'Sign out',
+            icon: const Icon(Icons.logout),
+            onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
+          ),
+        ],
       ),
       body: planAsync.when(
         data: (plan) {

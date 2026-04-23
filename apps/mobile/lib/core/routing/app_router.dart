@@ -9,27 +9,45 @@ import '../../features/auth/presentation/sign_in_screen.dart';
 import '../../features/exercises/presentation/create_exercise_screen.dart';
 import '../../features/exercises/presentation/exercise_detail_screen.dart';
 import '../../features/exercises/presentation/exercise_list_screen.dart';
-import '../../features/home/presentation/home_screen.dart';
+import '../../features/history/presentation/history_detail_screen.dart';
+import '../../features/history/presentation/history_tab.dart';
 import '../../features/sessions/presentation/finish_screen.dart';
 import '../../features/sessions/presentation/session_screen.dart';
 import '../../features/sessions/presentation/today_screen.dart';
+import '../shell/app_shell.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/train',
     redirect: (context, state) {
       final isAuthed = Supabase.instance.client.auth.currentSession != null;
       final goingToSignIn = state.matchedLocation == '/sign-in';
       if (!isAuthed && !goingToSignIn) return '/sign-in';
-      if (isAuthed && goingToSignIn) return '/';
+      if (isAuthed && goingToSignIn) return '/train';
       return null;
     },
     refreshListenable:
         GoRouterRefreshStream(Supabase.instance.client.auth.onAuthStateChange),
     routes: [
-      GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
       GoRoute(path: '/sign-in', builder: (_, _) => const SignInScreen()),
-      GoRoute(path: '/exercises', builder: (_, _) => const ExerciseListScreen()),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => AppShell(shell: shell),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/train', builder: (_, _) => const TodayScreen()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/history', builder: (_, _) => const HistoryTab()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/exercises',
+              builder: (_, _) => const ExerciseListScreen(),
+            ),
+          ]),
+        ],
+      ),
+      // Full-screen (pushed on top of the shell)
       GoRoute(
         path: '/exercises/new',
         builder: (_, _) => const CreateExerciseScreen(),
@@ -39,7 +57,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, state) =>
             ExerciseDetailScreen(id: state.pathParameters['id']!),
       ),
-      GoRoute(path: '/today', builder: (_, _) => const TodayScreen()),
       GoRoute(
         path: '/session/:id',
         builder: (_, state) =>
@@ -49,6 +66,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/session/:id/finish',
         builder: (_, state) =>
             FinishScreen(sessionId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/history/:id',
+        builder: (_, state) =>
+            HistoryDetailScreen(sessionId: state.pathParameters['id']!),
       ),
     ],
   );
