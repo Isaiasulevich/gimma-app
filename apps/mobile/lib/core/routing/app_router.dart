@@ -10,6 +10,9 @@ import '../../features/exercises/presentation/create_exercise_screen.dart';
 import '../../features/exercises/presentation/exercise_detail_screen.dart';
 import '../../features/exercises/presentation/exercise_list_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/sessions/presentation/finish_screen.dart';
+import '../../features/sessions/presentation/session_screen.dart';
+import '../../features/sessions/presentation/today_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -35,6 +38,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/exercises/:id',
         builder: (_, state) =>
             ExerciseDetailScreen(id: state.pathParameters['id']!),
+      ),
+      GoRoute(path: '/today', builder: (_, _) => const TodayScreen()),
+      GoRoute(
+        path: '/session/:id',
+        builder: (_, state) =>
+            SessionScreen(sessionId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/session/:id/finish',
+        builder: (_, state) =>
+            FinishScreen(sessionId: state.pathParameters['id']!),
       ),
     ],
   );
