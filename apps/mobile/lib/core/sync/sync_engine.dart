@@ -8,6 +8,9 @@ import 'sync_status.dart';
 /// Server-side adapter. One method per entity kind.
 abstract class SyncRemote {
   Future<void> pushExercise(Map<String, dynamic> row, String op);
+  Future<void> pushSession(Map<String, dynamic> row, String op);
+  Future<void> pushSessionExercise(Map<String, dynamic> row, String op);
+  Future<void> pushSet(Map<String, dynamic> row, String op);
   Future<String?> uploadPhotoIfPresent({
     required String localPath,
     required String userId,
@@ -108,6 +111,53 @@ class SyncEngine {
           'is_archived': row.isArchived,
           'created_at': row.createdAt.toIso8601String(),
           'updated_at': row.updatedAt.toIso8601String(),
+        }, meta.operation);
+        break;
+      case 'sessions':
+        final row = await (_db.select(_db.sessions)..where((t) => t.id.equals(meta.id)))
+            .getSingle();
+        await _remote.pushSession({
+          'id': row.id,
+          'user_id': row.userId,
+          'plan_day_id': row.planDayId,
+          'started_at': row.startedAt.toIso8601String(),
+          'ended_at': row.endedAt?.toIso8601String(),
+          'status': row.status,
+          'bodyweight': row.bodyweight,
+          'heart_rate_avg': row.heartRateAvg,
+          'heart_rate_max': row.heartRateMax,
+          'calories_est': row.caloriesEst,
+          'notes': row.notes,
+        }, meta.operation);
+        break;
+      case 'session_exercises':
+        final row =
+            await (_db.select(_db.sessionExercises)..where((t) => t.id.equals(meta.id)))
+                .getSingle();
+        await _remote.pushSessionExercise({
+          'id': row.id,
+          'session_id': row.sessionId,
+          'exercise_id': row.exerciseId,
+          'order': row.order,
+          'status': row.status,
+          'skip_reason': row.skipReason,
+        }, meta.operation);
+        break;
+      case 'sets':
+        final row =
+            await (_db.select(_db.sets)..where((t) => t.id.equals(meta.id))).getSingle();
+        await _remote.pushSet({
+          'id': row.id,
+          'session_exercise_id': row.sessionExerciseId,
+          'set_number': row.setNumber,
+          'weight': row.weight,
+          'reps': row.reps,
+          'rir': row.rir,
+          'rest_seconds': row.restSeconds,
+          'tempo': row.tempo,
+          'is_unilateral_left': row.isUnilateralLeft,
+          'notes': row.notes,
+          'logged_at': row.loggedAt.toIso8601String(),
         }, meta.operation);
         break;
       default:

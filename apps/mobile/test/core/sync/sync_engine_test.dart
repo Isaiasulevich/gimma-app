@@ -9,14 +9,29 @@ class _FakeRemote implements SyncRemote {
   final List<Map<String, dynamic>> pushed = [];
   bool throwOnce = false;
 
-  @override
-  Future<void> pushExercise(Map<String, dynamic> row, String op) async {
+  void _push(String kind, Map<String, dynamic> row, String op) {
     if (throwOnce) {
       throwOnce = false;
       throw Exception('transient');
     }
-    pushed.add({...row, '_op': op});
+    pushed.add({...row, '_kind': kind, '_op': op});
   }
+
+  @override
+  Future<void> pushExercise(Map<String, dynamic> row, String op) async =>
+      _push('exercise', row, op);
+
+  @override
+  Future<void> pushSession(Map<String, dynamic> row, String op) async =>
+      _push('session', row, op);
+
+  @override
+  Future<void> pushSessionExercise(Map<String, dynamic> row, String op) async =>
+      _push('session_exercise', row, op);
+
+  @override
+  Future<void> pushSet(Map<String, dynamic> row, String op) async =>
+      _push('set', row, op);
 
   @override
   Future<String?> uploadPhotoIfPresent({
