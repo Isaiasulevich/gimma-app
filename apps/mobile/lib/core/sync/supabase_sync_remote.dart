@@ -12,8 +12,23 @@ class SupabaseSyncRemote implements SyncRemote {
   final SupabaseClient _client;
 
   @override
-  Future<void> pushExercise(Map<String, dynamic> row, String op) async {
-    final table = _client.from('exercises');
+  Future<void> pushExercise(Map<String, dynamic> row, String op) =>
+      _pushRow('exercises', row, op);
+
+  @override
+  Future<void> pushSession(Map<String, dynamic> row, String op) =>
+      _pushRow('sessions', row, op);
+
+  @override
+  Future<void> pushSessionExercise(Map<String, dynamic> row, String op) =>
+      _pushRow('session_exercises', row, op);
+
+  @override
+  Future<void> pushSet(Map<String, dynamic> row, String op) =>
+      _pushRow('sets', row, op);
+
+  Future<void> _pushRow(String tableName, Map<String, dynamic> row, String op) async {
+    final table = _client.from(tableName);
     switch (op) {
       case 'insert':
       case 'update':
