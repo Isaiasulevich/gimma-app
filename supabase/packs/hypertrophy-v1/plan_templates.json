@@ -1,0 +1,79 @@
+[
+  {
+    "split": "full_body",
+    "days_per_week": 3,
+    "structure": [
+      {
+        "day": "Full Body A",
+        "focus": "compound lifts",
+        "movements": ["squat_pattern", "horizontal_push", "horizontal_pull", "core", "biceps", "triceps"]
+      },
+      {
+        "day": "Full Body B",
+        "focus": "compound lifts",
+        "movements": ["hinge_pattern", "vertical_push", "vertical_pull", "lunge", "calves"]
+      },
+      {
+        "day": "Full Body C",
+        "focus": "moderate intensity",
+        "movements": ["squat_pattern", "horizontal_push", "vertical_pull", "rear_delts", "forearms"]
+      }
+    ]
+  },
+  {
+    "split": "upper_lower",
+    "days_per_week": 4,
+    "structure": [
+      {
+        "day": "Upper A",
+        "focus": "heavy push",
+        "movements": ["horizontal_push", "vertical_pull", "horizontal_pull", "vertical_push", "biceps", "triceps"]
+      },
+      {
+        "day": "Lower A",
+        "focus": "heavy lower",
+        "movements": ["squat_pattern", "hinge_pattern", "lunge", "calves", "core"]
+      },
+      {
+        "day": "Upper B",
+        "focus": "volume push",
+        "movements": ["vertical_push", "horizontal_pull", "horizontal_push", "vertical_pull", "rear_delts", "arms"]
+      },
+      {
+        "day": "Lower B",
+        "focus": "volume lower + posterior",
+        "movements": ["hinge_pattern", "squat_pattern", "hamstrings", "calves", "glutes"]
+      }
+    ]
+  },
+  {
+    "split": "ppl",
+    "days_per_week": 6,
+    "structure": [
+      {
+        "day": "Push A",
+        "movements": ["horizontal_push", "vertical_push", "side_delts", "triceps", "triceps_isolation"]
+      },
+      {
+        "day": "Pull A",
+        "movements": ["vertical_pull", "horizontal_pull", "rear_delts", "biceps", "forearms"]
+      },
+      {
+        "day": "Legs A",
+        "movements": ["squat_pattern", "hinge_pattern", "quads_isolation", "hamstrings", "calves"]
+      },
+      {
+        "day": "Push B",
+        "movements": ["vertical_push", "horizontal_push_isolation", "chest_isolation", "side_delts", "triceps"]
+      },
+      {
+        "day": "Pull B",
+        "movements": ["horizontal_pull", "vertical_pull", "lats_isolation", "rear_delts", "biceps"]
+      },
+      {
+        "day": "Legs B",
+        "movements": ["hinge_pattern", "lunge", "quads_isolation", "glutes", "calves"]
+      }
+    ]
+  }
+]

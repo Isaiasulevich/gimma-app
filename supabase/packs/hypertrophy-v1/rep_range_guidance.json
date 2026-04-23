@@ -1,0 +1,5 @@
+{
+  "compound": { "reps_min": 5, "reps_max": 10, "rir_min": 1, "rir_max": 3 },
+  "isolation": { "reps_min": 8, "reps_max": 15, "rir_min": 0, "rir_max": 2 },
+  "core": { "reps_min": 10, "reps_max": 20, "rir_min": 0, "rir_max": 3 }
+}
