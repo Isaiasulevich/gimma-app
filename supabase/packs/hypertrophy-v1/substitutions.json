@@ -1,0 +1,6 @@
+[
+  { "when": "no_barbell", "avoid": ["barbell"], "prefer": ["dumbbell", "machine"] },
+  { "when": "knee_pain", "avoid_exercises": ["barbell back squat", "walking lunge", "pistol squat"], "prefer_exercises": ["leg press", "goblet squat", "split squat"] },
+  { "when": "lower_back_pain", "avoid_exercises": ["barbell deadlift", "good morning", "bent-over row"], "prefer_exercises": ["romanian deadlift", "trap bar deadlift", "seated row"] },
+  { "when": "shoulder_pain", "avoid_exercises": ["barbell overhead press", "behind-the-neck press", "upright row"], "prefer_exercises": ["dumbbell overhead press", "lateral raise", "landmine press"] }
+]

@@ -1,0 +1,5 @@
+id: hypertrophy-v1
+name: Hypertrophy-focused training
+version: 1.0.0
+goal: muscle
+recommended_splits: [full_body, upper_lower, ppl]
