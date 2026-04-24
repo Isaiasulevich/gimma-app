@@ -20,6 +20,11 @@ class AppShell extends StatelessWidget {
             label: 'Train',
           ),
           NavigationDestination(
+            icon: Icon(Icons.psychology_outlined),
+            selectedIcon: Icon(Icons.psychology),
+            label: 'Coach',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.history_outlined),
             selectedIcon: Icon(Icons.history),
             label: 'History',
