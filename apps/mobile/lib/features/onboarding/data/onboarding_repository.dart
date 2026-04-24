@@ -13,6 +13,7 @@ class OnboardingRepository {
     await _client.from('users').update({
       'onboarding_mode': mode,
       'goal': goal,
+      // ignore: use_null_aware_elements
       if (experienceLevel != null) 'experience_level': experienceLevel,
     }).eq('id', userId);
   }

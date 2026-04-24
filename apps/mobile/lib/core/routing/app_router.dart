@@ -34,7 +34,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Authed: check onboarding completion (cached).
       final onboardingAsync = ref.read(onboardingCompleteProvider);
-      final onboardingComplete = onboardingAsync.valueOrNull;
+      final onboardingComplete = onboardingAsync.asData?.value;
       final onOnboarding = loc.startsWith('/onboarding');
 
       // While loading, don't redirect — avoids flicker.
