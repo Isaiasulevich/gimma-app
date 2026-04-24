@@ -7,6 +7,7 @@ import { loadAiConfig } from '../_shared/load_ai_config.ts';
 import { computeWeeklyMetrics } from '../_shared/compute_metrics.ts';
 import { ANALYST_SYSTEM_PROMPT } from '../_shared/analyst_prompt.ts';
 import { initSentry, captureError } from '../_shared/sentry.ts';
+import { estimateCostUsd } from '../_shared/pricing.ts';
 
 initSentry();
 
@@ -69,6 +70,12 @@ serve(async (req) => {
     output_tokens: usage?.completionTokens,
     request_body: metrics,
     response_body: object,
+    cost_usd: estimateCostUsd(
+      cfg.provider,
+      cfg.model,
+      usage?.promptTokens,
+      usage?.completionTokens,
+    ),
   });
 
   return new Response(JSON.stringify(object), {

@@ -8,6 +8,7 @@ import { loadAiConfig } from '../_shared/load_ai_config.ts';
 import { loadPack } from '../_shared/load_pack.ts';
 import { buildUserContext } from '../_shared/build_context.ts';
 import { initSentry, captureError } from '../_shared/sentry.ts';
+import { estimateCostUsd } from '../_shared/pricing.ts';
 
 initSentry();
 
@@ -93,6 +94,7 @@ serve(async (req) => {
       response_body: null,
       error: (e as Error).message,
       latency_ms: Date.now() - startedAt,
+      cost_usd: estimateCostUsd(cfg.provider, cfg.model, null, null),
     });
     return json({ error: (e as Error).message }, 500);
   }
@@ -178,6 +180,12 @@ serve(async (req) => {
     request_body: { body, prompt_preview: prompt.slice(0, 2000) },
     response_body: generated.object,
     latency_ms: Date.now() - startedAt,
+    cost_usd: estimateCostUsd(
+      cfg.provider,
+      cfg.model,
+      generated.usage?.promptTokens,
+      generated.usage?.completionTokens,
+    ),
   });
 
   return json({ plan_id: planRow.id });
