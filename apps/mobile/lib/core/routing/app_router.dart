@@ -11,6 +11,11 @@ import '../../features/exercises/presentation/exercise_detail_screen.dart';
 import '../../features/exercises/presentation/exercise_list_screen.dart';
 import '../../features/history/presentation/history_detail_screen.dart';
 import '../../features/history/presentation/history_tab.dart';
+import '../../features/onboarding/data/onboarding_state_provider.dart';
+import '../../features/onboarding/presentation/generating_plan_screen.dart';
+import '../../features/onboarding/presentation/guided_qa_screen.dart';
+import '../../features/onboarding/presentation/mode_picker_screen.dart';
+import '../../features/onboarding/presentation/observe_qa_screen.dart';
 import '../../features/sessions/presentation/finish_screen.dart';
 import '../../features/sessions/presentation/session_screen.dart';
 import '../../features/sessions/presentation/today_screen.dart';
@@ -21,15 +26,51 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/train',
     redirect: (context, state) {
       final isAuthed = Supabase.instance.client.auth.currentSession != null;
-      final goingToSignIn = state.matchedLocation == '/sign-in';
-      if (!isAuthed && !goingToSignIn) return '/sign-in';
-      if (isAuthed && goingToSignIn) return '/train';
+      final loc = state.matchedLocation;
+
+      if (!isAuthed) {
+        return loc == '/sign-in' ? null : '/sign-in';
+      }
+
+      // Authed: check onboarding completion (cached).
+      final onboardingAsync = ref.read(onboardingCompleteProvider);
+      final onboardingComplete = onboardingAsync.valueOrNull;
+      final onOnboarding = loc.startsWith('/onboarding');
+
+      // While loading, don't redirect — avoids flicker.
+      if (onboardingComplete == null) {
+        if (loc == '/sign-in') return '/train';
+        return null;
+      }
+
+      if (!onboardingComplete && !onOnboarding) return '/onboarding';
+      if (onboardingComplete && onOnboarding) return '/train';
+      if (loc == '/sign-in') return '/train';
       return null;
     },
-    refreshListenable:
-        GoRouterRefreshStream(Supabase.instance.client.auth.onAuthStateChange),
+    refreshListenable: GoRouterRefreshStream(
+      Supabase.instance.client.auth.onAuthStateChange,
+      onRefresh: () => ref.invalidate(onboardingCompleteProvider),
+    ),
     routes: [
       GoRoute(path: '/sign-in', builder: (_, _) => const SignInScreen()),
+      // Onboarding routes are outside the shell (full-screen, no bottom nav).
+      GoRoute(
+        path: '/onboarding',
+        builder: (_, _) => const ModePickerScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/guided',
+        builder: (_, _) => const GuidedQaScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/observe',
+        builder: (_, _) => const ObserveQaScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding/generating',
+        builder: (_, _) => const GeneratingPlanScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(shell: shell),
         branches: [
@@ -47,7 +88,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ]),
         ],
       ),
-      // Full-screen (pushed on top of the shell)
       GoRoute(
         path: '/exercises/new',
         builder: (_, _) => const CreateExerciseScreen(),
@@ -78,11 +118,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
 /// Bridges a Stream to a Listenable so GoRouter refreshes on auth changes.
 class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
+  GoRouterRefreshStream(Stream<dynamic> stream, {this.onRefresh}) {
     notifyListeners();
-    _sub = stream.asBroadcastStream().listen((_) => notifyListeners());
+    _sub = stream.asBroadcastStream().listen((_) {
+      onRefresh?.call();
+      notifyListeners();
+    });
   }
   late final StreamSubscription<dynamic> _sub;
+  final VoidCallback? onRefresh;
 
   @override
   void dispose() {
