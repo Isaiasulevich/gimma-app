@@ -1,16 +1,17 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 export default function TestPlanGen() {
+  const router = useRouter();
   const [goal, setGoal] = useState('muscle');
   const [daysPerWeek, setDays] = useState(4);
   const [running, setRunning] = useState(false);
-  const [result, setResult] = useState<unknown>(null);
   const [err, setErr] = useState<string | null>(null);
 
   async function run() {
-    setRunning(true); setErr(null); setResult(null);
+    setRunning(true); setErr(null);
     const supabase = createClient();
     const { data, error } = await supabase.functions.invoke('generate-plan', {
       body: {
@@ -22,11 +23,8 @@ export default function TestPlanGen() {
         injuries: [],
       },
     });
-    setRunning(false);
     if (error) {
-      // Supabase FunctionsHttpError exposes the Response on .context. Try to
-      // surface the server-side error body so debugging doesn't require
-      // `supabase functions logs`.
+      setRunning(false);
       const ctx = (error as { context?: Response }).context;
       if (ctx && typeof ctx.text === 'function') {
         try {
@@ -40,12 +38,23 @@ export default function TestPlanGen() {
       }
       return;
     }
-    setResult(data);
+    const id = (data as { plan_id?: string })?.plan_id;
+    if (id) {
+      router.push(`/plans/${id}`);
+    } else {
+      setRunning(false);
+      setErr('Function succeeded but returned no plan_id');
+    }
   }
 
   return (
     <>
       <h1 className="mb-4 text-2xl font-semibold">Test plan-gen</h1>
+      <p className="mb-4 max-w-2xl text-sm text-neutral-600">
+        Fires the real <code>generate-plan</code> edge function with seed inputs.
+        The generated plan is tied to <em>your</em> user account — on success
+        you&#39;ll be redirected to the plan view.
+      </p>
       <div className="mb-4 flex gap-3 items-end">
         <div>
           <label className="block text-xs">Goal</label>
@@ -63,12 +72,7 @@ export default function TestPlanGen() {
           {running ? 'Running…' : 'Generate'}
         </button>
       </div>
-      {err && <pre className="rounded bg-red-100 p-3 text-sm text-red-800">{err}</pre>}
-      {result !== null && (
-        <pre className="rounded bg-neutral-100 p-4 text-xs max-h-[600px] overflow-auto">
-          {JSON.stringify(result, null, 2)}
-        </pre>
-      )}
+      {err && <pre className="mt-2 whitespace-pre-wrap rounded bg-red-100 p-3 text-sm text-red-800">{err}</pre>}
     </>
   );
 }
