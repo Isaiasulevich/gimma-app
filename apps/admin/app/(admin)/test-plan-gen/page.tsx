@@ -23,7 +23,23 @@ export default function TestPlanGen() {
       },
     });
     setRunning(false);
-    if (error) { setErr(error.message); return; }
+    if (error) {
+      // Supabase FunctionsHttpError exposes the Response on .context. Try to
+      // surface the server-side error body so debugging doesn't require
+      // `supabase functions logs`.
+      const ctx = (error as { context?: Response }).context;
+      if (ctx && typeof ctx.text === 'function') {
+        try {
+          const text = await ctx.text();
+          setErr(`${error.message}\n\n${text}`);
+        } catch {
+          setErr(error.message);
+        }
+      } else {
+        setErr(error.message);
+      }
+      return;
+    }
     setResult(data);
   }
 

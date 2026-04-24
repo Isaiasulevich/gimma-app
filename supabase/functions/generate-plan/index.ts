@@ -83,20 +83,33 @@ serve(async (req) => {
     generated = result;
   } catch (e) {
     captureError(e, { url: req.url, userId });
+    // AI SDK's NoObjectGeneratedError carries the raw model text + usage on
+    // its properties — surface them into the log so debugging doesn't
+    // require reading supabase functions logs.
+    const err = e as {
+      message?: string;
+      text?: string;
+      cause?: { message?: string };
+      usage?: { promptTokens?: number; completionTokens?: number };
+      finishReason?: string;
+    };
+    const usage = err.usage;
     await logCall(admin, {
       user_id: userId,
       kind: 'plan_gen',
       provider: cfg.provider,
       model: cfg.model,
+      input_tokens: usage?.promptTokens,
+      output_tokens: usage?.completionTokens,
       system_prompt_hash: systemPromptHash,
       pack_id: pack.id,
       request_body: { body, prompt_preview: prompt.slice(0, 2000) },
-      response_body: null,
-      error: (e as Error).message,
+      response_body: err.text ? { raw_text: err.text, finish_reason: err.finishReason } : null,
+      error: `${err.message ?? 'Unknown'}${err.cause?.message ? ` · cause: ${err.cause.message}` : ''}`,
       latency_ms: Date.now() - startedAt,
-      cost_usd: estimateCostUsd(cfg.provider, cfg.model, null, null),
+      cost_usd: estimateCostUsd(cfg.provider, cfg.model, usage?.promptTokens, usage?.completionTokens),
     });
-    return json({ error: (e as Error).message }, 500);
+    return json({ error: err.message ?? 'Unknown error' }, 500);
   }
 
   // Validate: every exercise_id must exist in the user's visible library.

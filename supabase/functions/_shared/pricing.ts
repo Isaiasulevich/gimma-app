@@ -1,4 +1,6 @@
 const PRICING: Record<string, { input: number; output: number }> = {
+  'google:gemini-2.5-flash': { input: 0.075, output: 0.30 },
+  'google:gemini-2.5-pro':   { input: 1.25,  output: 5.00 },
   'google:gemini-2.0-flash': { input: 0.075, output: 0.30 },
   'google:gemini-2.0-pro':   { input: 1.25,  output: 5.00 },
   'anthropic:claude-opus-4-5':   { input: 3.00,  output: 15.00 },
