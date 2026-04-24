@@ -33,6 +33,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <nav className="flex flex-col gap-2 text-sm">
           <Link href="/ai" className="hover:underline">AI settings</Link>
           <Link href="/packs" className="hover:underline">Knowledge packs</Link>
+          <Link href="/plans" className="hover:underline">Plans</Link>
           <Link href="/logs" className="hover:underline">AI call logs</Link>
           <Link href="/test-plan-gen" className="hover:underline">Test plan-gen</Link>
           <Link href="/docs" className="mt-4 text-neutral-500 hover:underline">How it works</Link>
