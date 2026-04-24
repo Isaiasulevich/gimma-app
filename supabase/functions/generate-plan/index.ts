@@ -7,6 +7,9 @@ import { resolveModel } from '../_shared/ai_providers.ts';
 import { loadAiConfig } from '../_shared/load_ai_config.ts';
 import { loadPack } from '../_shared/load_pack.ts';
 import { buildUserContext } from '../_shared/build_context.ts';
+import { initSentry, captureError } from '../_shared/sentry.ts';
+
+initSentry();
 
 interface RequestBody {
   goal: string;
@@ -78,6 +81,7 @@ serve(async (req) => {
     });
     generated = result;
   } catch (e) {
+    captureError(e, { url: req.url, userId });
     await logCall(admin, {
       user_id: userId,
       kind: 'plan_gen',

@@ -6,10 +6,14 @@ import { resolveModel } from '../_shared/ai_providers.ts';
 import { loadAiConfig } from '../_shared/load_ai_config.ts';
 import { computeWeeklyMetrics } from '../_shared/compute_metrics.ts';
 import { ANALYST_SYSTEM_PROMPT } from '../_shared/analyst_prompt.ts';
+import { initSentry, captureError } from '../_shared/sentry.ts';
+
+initSentry();
 
 const SummarySchema = z.object({ summary_md: z.string().min(20).max(2000) });
 
-serve(async (_req) => {
+serve(async (req) => {
+  try {
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -64,4 +68,8 @@ serve(async (_req) => {
   return new Response(JSON.stringify({ processed: results }), {
     headers: { 'content-type': 'application/json' },
   });
+  } catch (e) {
+    captureError(e, { url: req.url });
+    throw e;
+  }
 });
