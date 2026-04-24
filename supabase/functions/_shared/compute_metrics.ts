@@ -84,7 +84,37 @@ export async function computeWeeklyMetrics(
     }
   }
 
+  // Stall = exercise where best weight hasn't increased in 3+ weeks.
+  const fiveWeeksAgo = new Date(weekStartDate);
+  fiveWeeksAgo.setUTCDate(fiveWeeksAgo.getUTCDate() - 28);
+
+  const { data: priorSets } = await client
+    .from('sets')
+    .select('weight, session_exercises!inner(exercise_id, exercises!inner(name), sessions!inner(started_at))')
+    .gte('session_exercises.sessions.started_at', fiveWeeksAgo.toISOString())
+    .lt('session_exercises.sessions.started_at', weekEnd.toISOString());
+
+  const exerciseBestByWeek: Record<string, { name: string; weeks: Record<string, number> }> = {};
+  for (const s of priorSets ?? []) {
+    const row = s as any;
+    const exId = row.session_exercises.exercise_id as string;
+    const exName = row.session_exercises.exercises.name as string;
+    const startedAt = new Date(row.session_exercises.sessions.started_at as string);
+    const wk = mondayOfWeek(startedAt);
+    const rec = exerciseBestByWeek[exId] ??= { name: exName, weeks: {} };
+    const current = rec.weeks[wk] ?? 0;
+    if ((row.weight ?? 0) > current) rec.weeks[wk] = row.weight ?? 0;
+  }
+
   const stalls: WeeklyMetrics['stalls'] = [];
+  for (const [exId, rec] of Object.entries(exerciseBestByWeek)) {
+    const weekEntries = Object.entries(rec.weeks).sort(([a], [b]) => a.localeCompare(b));
+    if (weekEntries.length < 3) continue;
+    const recent = weekEntries.slice(-3).map(([, v]) => v);
+    if (recent[0] === recent[1] && recent[1] === recent[2] && recent[0] > 0) {
+      stalls.push({ exercise_id: exId, exercise_name: rec.name, weeks_stalled: 3 });
+    }
+  }
 
   return { week_start: weekStart, volume_by_muscle: volumeByMuscle, frequency, prs, stalls, total_sets: totalSets, total_sessions: sessionIds.length };
 }

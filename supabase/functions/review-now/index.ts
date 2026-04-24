@@ -6,6 +6,10 @@ import { resolveModel } from '../_shared/ai_providers.ts';
 import { loadAiConfig } from '../_shared/load_ai_config.ts';
 import { computeWeeklyMetrics } from '../_shared/compute_metrics.ts';
 import { ANALYST_SYSTEM_PROMPT } from '../_shared/analyst_prompt.ts';
+import { initSentry, captureError } from '../_shared/sentry.ts';
+import { estimateCostUsd } from '../_shared/pricing.ts';
+
+initSentry();
 
 const SummarySchema = z.object({ summary_md: z.string().min(20).max(2000) });
 
@@ -16,6 +20,7 @@ const CORS_HEADERS: Record<string, string> = {
 };
 
 serve(async (req) => {
+  try {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS });
   }
@@ -65,9 +70,19 @@ serve(async (req) => {
     output_tokens: usage?.completionTokens,
     request_body: metrics,
     response_body: object,
+    cost_usd: estimateCostUsd(
+      cfg.provider,
+      cfg.model,
+      usage?.promptTokens,
+      usage?.completionTokens,
+    ),
   });
 
   return new Response(JSON.stringify(object), {
     headers: { 'content-type': 'application/json', ...CORS_HEADERS },
   });
+  } catch (e) {
+    captureError(e, { url: req.url });
+    throw e;
+  }
 });
