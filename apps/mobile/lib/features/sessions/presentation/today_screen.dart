@@ -9,10 +9,16 @@ import '../../../core/db/app_database.dart';
 import '../../../core/db/database_provider.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../exercises/presentation/widgets/sync_status_pill.dart';
+import '../../onboarding/data/onboarding_state_provider.dart';
+import '../../onboarding/presentation/ready_for_plan_sheet.dart';
 import '../../plans/data/plan_repository.dart';
 import '../data/session_repository.dart';
 
 const _gap = 12.0;
+
+// Observation-mode auto-prompt thresholds.
+const _readyForPlanDays = 14;
+const _readyForPlanSessions = 8;
 
 final planRepoProvider = Provider<PlanRepository>(
   (ref) => PlanRepository(ref.watch(appDatabaseProvider)),
@@ -32,8 +38,22 @@ final _daysProvider = FutureProvider.autoDispose.family<List<PlanDayRow>, String
   (ref, planId) => ref.watch(planRepoProvider).daysFor(planId),
 );
 
-class TodayScreen extends ConsumerWidget {
+final _userProfileProvider =
+    FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
+  final user = Supabase.instance.client.auth.currentUser;
+  if (user == null) return null;
+  return ref.watch(onboardingRepositoryProvider).getProfile(user.id);
+});
+
+class TodayScreen extends ConsumerStatefulWidget {
   const TodayScreen({super.key});
+
+  @override
+  ConsumerState<TodayScreen> createState() => _TodayScreenState();
+}
+
+class _TodayScreenState extends ConsumerState<TodayScreen> {
+  bool _readyForPlanChecked = false;
 
   PlanDayRow _suggestedDay(List<PlanDayRow> days) {
     final idx = DateTime.now().toUtc().millisecondsSinceEpoch ~/
@@ -42,9 +62,59 @@ class TodayScreen extends ConsumerWidget {
     return days[idx];
   }
 
+  /// Show the ready-for-plan sheet once per session for observe-mode users
+  /// who have no active plan and have hit the threshold (14 days OR 8 sessions).
+  Future<void> _maybeShowReadyForPlan() async {
+    if (_readyForPlanChecked) return;
+    _readyForPlanChecked = true;
+
+    final profile = ref.read(_userProfileProvider).asData?.value;
+    if (profile == null) return;
+    if (profile['onboarding_mode'] != 'observe') return;
+
+    // Already has an active plan — nothing to prompt.
+    final plan = ref.read(_activePlanProvider).asData?.value;
+    if (plan != null) return;
+
+    final userId = profile['id'] as String;
+    final repo = ref.read(onboardingRepositoryProvider);
+    final (days, sessions) = await (
+      repo.daysSinceSignup(userId),
+      repo.loggedSessionCount(userId),
+    ).wait;
+    if (days < _readyForPlanDays && sessions < _readyForPlanSessions) return;
+
+    if (!mounted) return;
+    unawaited(showModalBottomSheet<void>(
+      context: context,
+      builder: (_) => const ReadyForPlanSheet(),
+    ));
+  }
+
+  Future<void> _freeTrain() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+    final sessionId = await ref.read(sessionRepoProvider).startSession(
+          userId: userId,
+          exerciseIds: const [],
+        );
+    if (mounted) unawaited(context.push('/session/$sessionId'));
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final planAsync = ref.watch(_activePlanProvider);
+    final profileAsync = ref.watch(_userProfileProvider);
+
+    // Trigger ready-for-plan check once both plan and profile have loaded.
+    if (planAsync.hasValue && profileAsync.hasValue) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(_maybeShowReadyForPlan());
+      });
+    }
+
+    final isGuided = profileAsync.asData?.value?['onboarding_mode'] == 'guided';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Train'),
@@ -75,6 +145,14 @@ class TodayScreen extends ConsumerWidget {
                     const _SectionLabel(text: 'Or pick another day'),
                     const SizedBox(height: _gap),
                     for (final d in others) _DayCard(day: d),
+                  ],
+                  if (isGuided) ...[
+                    const SizedBox(height: _gap * 2),
+                    TextButton.icon(
+                      icon: const Icon(Icons.skip_next_outlined),
+                      label: const Text('Free train today'),
+                      onPressed: () => unawaited(_freeTrain()),
+                    ),
                   ],
                 ],
               );

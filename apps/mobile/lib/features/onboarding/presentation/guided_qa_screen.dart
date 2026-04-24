@@ -226,7 +226,9 @@ class _RadioGroup extends StatelessWidget {
           RadioListTile<String>(
             title: Text(o.$2),
             value: o.$1,
+            // ignore: deprecated_member_use
             groupValue: selected,
+            // ignore: deprecated_member_use
             onChanged: (v) => onChanged(v!),
           ),
       ],

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/auth/presentation/sign_in_screen.dart';
+import '../../features/coach/presentation/coach_tab.dart';
 import '../../features/exercises/presentation/create_exercise_screen.dart';
 import '../../features/exercises/presentation/exercise_detail_screen.dart';
 import '../../features/exercises/presentation/exercise_list_screen.dart';
@@ -34,7 +35,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Authed: check onboarding completion (cached).
       final onboardingAsync = ref.read(onboardingCompleteProvider);
-      final onboardingComplete = onboardingAsync.valueOrNull;
+      final onboardingComplete = onboardingAsync.asData?.value;
       final onOnboarding = loc.startsWith('/onboarding');
 
       // While loading, don't redirect — avoids flicker.
@@ -76,6 +77,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         branches: [
           StatefulShellBranch(routes: [
             GoRoute(path: '/train', builder: (_, _) => const TodayScreen()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/coach', builder: (_, _) => const CoachTab()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: '/history', builder: (_, _) => const HistoryTab()),
