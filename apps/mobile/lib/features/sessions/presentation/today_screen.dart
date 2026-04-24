@@ -98,10 +98,29 @@ class _EmptyState extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
-        child: Text(
-          'No active plan. Generate one to start.',
-          style: Theme.of(context).textTheme.bodyLarge,
-          textAlign: TextAlign.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'No active plan.',
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: _gap / 2),
+            Text(
+              'Generate one and start training today.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: _gap * 2),
+            FilledButton.icon(
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('Generate plan'),
+              onPressed: () => context.push('/onboarding/guided'),
+            ),
+          ],
         ),
       ),
     );
