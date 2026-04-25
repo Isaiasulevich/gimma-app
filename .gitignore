@@ -2,3 +2,7 @@
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 apps/mobile/.env
+
+# macOS
+.DS_Store
+**/.DS_Store
