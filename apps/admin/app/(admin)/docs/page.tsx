@@ -1,4 +1,7 @@
-export const dynamic = 'force-static';
+// Docs has no per-request data, but the (admin) layout above it fetches
+// the authed user — so build-time prerender requires Supabase env vars.
+// Render dynamically per request to keep the build clean of those deps.
+export const dynamic = 'force-dynamic';
 
 export default function DocsPage() {
   return (
