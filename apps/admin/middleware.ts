@@ -1,4 +1,6 @@
-import { updateSession } from '@/lib/supabase/middleware';
+// Relative import (not `@/` alias) — Vercel's Edge runtime bundler doesn't
+// resolve TS path aliases in Turbopack-built middleware.
+import { updateSession } from './lib/supabase/middleware';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
